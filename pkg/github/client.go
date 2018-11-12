@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// Client -
+// Client holds logic to create a new GitHub client
 type Client struct {
 	privateKeyPath string
 	appID          int

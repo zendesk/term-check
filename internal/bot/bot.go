@@ -33,7 +33,7 @@ var (
 		"created":     {},
 		"rerequested": {},
 	}
-	pullRequestRelevantActions = map[string]struct{}{ // TODO: Add more event support
+	pullRequestRelevantActions = map[string]struct{}{
 		"opened":   {},
 		"reopened": {},
 	}
@@ -75,14 +75,14 @@ func New(options ...Option) *Bot {
 	return &b
 }
 
-// Start -
+// Start starts the bot server
 func (b *Bot) Start() {
 	log.Debug().Msg("Starting bot...")
 
 	b.server.Start()
 }
 
-// HandleEvent -
+// HandleEvent interface implementation for Server to pass incoming GitHub events to
 func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
 	switch event := event.(type) {
 	case *github.CheckSuiteEvent:

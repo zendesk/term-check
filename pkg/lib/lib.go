@@ -20,13 +20,13 @@ func Env(name string, fallback string) string {
 	return v
 }
 
-// Contains -
+// Contains returns a boolean indicating whether a string is present in a passed in set of strings
 func Contains(set map[string]struct{}, item string) bool {
 	_, ok := set[item]
 	return ok
 }
 
-// Unique -
+// Unique returns a new copy of the passed in slice with all duplicates removed
 func Unique(slice []string) (res []string) {
 	set := make(map[string]struct{})
 

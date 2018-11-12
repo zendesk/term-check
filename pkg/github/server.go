@@ -10,12 +10,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// EventHandler -
+// EventHandler interface to allow hooking into GitHub events
 type EventHandler interface {
 	HandleEvent(event interface{}) error
 }
 
-// Server -
+// Server used to listen for and pass off GitHub events
 type Server struct {
 	webhookSecretKey string
 	eventHandler     EventHandler
@@ -33,17 +33,16 @@ func NewServer(options ...ServerOption) *Server {
 }
 
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
-	// TODO: bleh, refactor this
+	var err error
+	var event interface{}
+
 	payload, err := github.ValidatePayload(r, []byte(s.webhookSecretKey))
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to validate secret key")
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if err == nil {
+		event, err = github.ParseWebHook(github.WebHookType(r), payload)
 	}
 
-	event, err := github.ParseWebHook(github.WebHookType(r), payload)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to parse incoming webhook")
+		log.Error().Err(err).Msg("Error handling incoming GitHub event")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

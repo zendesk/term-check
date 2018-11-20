@@ -19,8 +19,8 @@ import (
 
 const (
 	checkName               = "Term Check"
-	checkFailConclusion     = "neutral"
 	checkSuccessConclusion  = "success"
+	checkFailureConclusion  = "neutral"
 	checkRunAnnotationLevel = "warning"
 )
 
@@ -160,40 +160,26 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 		return
 	}
 
-	var cro github.CreateCheckRunOptions
-	// presence of annotations signals there is usage of flagged terms -- TODO DRY
+	cro := github.CreateCheckRunOptions{
+		Name:        checkName,
+		HeadBranch:  pr.GetHead().GetRef(),
+		HeadSHA:     headSHA,
+		Status:      github.String("completed"),
+		CompletedAt: &github.Timestamp{time.Now()},
+		Output: &github.CheckRunOutput{
+			Title:            github.String("Term Check"),
+			Text:             github.String("Placeholder text"),
+			AnnotationsCount: github.Int(len(annotations)),
+			Annotations:      annotations,
+		},
+	}
+	// presence of annotations signals there is usage of flagged terms
 	if len(annotations) > 0 {
-		cro = github.CreateCheckRunOptions{
-			Name:        checkName,
-			HeadBranch:  pr.GetHead().GetRef(),
-			HeadSHA:     headSHA,
-			Status:      github.String("completed"),
-			Conclusion:  github.String(checkFailConclusion),
-			CompletedAt: &github.Timestamp{time.Now()},
-			Output: &github.CheckRunOutput{
-				Title:            github.String("Term Check"),
-				Summary:          github.String("⚠️ Flagged terms found."),
-				Text:             github.String("Placeholder text"),
-				AnnotationsCount: github.Int(len(annotations)),
-				Annotations:      annotations,
-			},
-		}
+		cro.Conclusion = github.String(checkFailureConclusion)
+		cro.Output.Summary = github.String("⚠️ Flagged terms found.")
 	} else {
-		cro = github.CreateCheckRunOptions{
-			Name:        checkName,
-			HeadBranch:  pr.GetHead().GetRef(),
-			HeadSHA:     headSHA,
-			Status:      github.String("completed"),
-			Conclusion:  github.String(checkSuccessConclusion),
-			CompletedAt: &github.Timestamp{time.Now()},
-			Output: &github.CheckRunOutput{
-				Title:            github.String("Term Check"),
-				Summary:          github.String("✅ No flagged terms found."),
-				Text:             github.String("Placeholder text"),
-				AnnotationsCount: github.Int(len(annotations)),
-				Annotations:      annotations,
-			},
-		}
+		cro.Conclusion = github.String(checkSuccessConclusion)
+		cro.Output.Summary = github.String("✅ No flagged terms found.")
 	}
 
 	_, resp, err := ghc.Checks.CreateCheckRun(ctx, r.GetOwner().GetLogin(), r.GetName(), cro)

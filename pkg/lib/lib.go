@@ -1,25 +1,5 @@
 package lib
 
-import (
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"os"
-)
-
-// Env looks env value for passed in key, logging and failing if not set
-func Env(name string, fallback string) string {
-	zerolog.TimeFieldFormat = ""
-
-	v, ok := os.LookupEnv(name)
-	if !ok {
-		if fallback != "" {
-			return fallback
-		}
-		log.Fatal().Msgf("Environment variable is not set: %s", name)
-	}
-	return v
-}
-
 // Contains returns a boolean indicating whether a string is present in a passed in set of strings
 func Contains(set map[string]struct{}, item string) bool {
 	_, ok := set[item]

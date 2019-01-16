@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: term-check
+  labels:
+    project: term-check
+    role: app-server
+    team: ragurney
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: term-check
+      role: app-server
+  template:
+    metadata:
+      labels:
+        project: term-check
+        role: app-server
+        team: ragurney
+      annotations:
+        samson/required_env: >
+          APP_ID
+          PRIVATE_KEY_PATH
+        secret/WEBHOOK_SECRET_KEY: webhook_secret_key
+        secret/PRIVATE_KEY: private_key
+
+    spec:
+      containers:
+      - name: term-check
+        image: gcr.io/docker-images-180022/apps/term-check:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+          - name: http
+            containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: term-check
+  labels:
+    project: term-check
+    role: app-server
+    team: ragurney
+spec:
+  selector:
+    project: term-check
+    role: app-server
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

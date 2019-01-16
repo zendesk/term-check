@@ -17,10 +17,22 @@ func main() {
 
 	id, err := strconv.Atoi(c.Env("APP_ID", ""))
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Panic().Err(err)
 	}
+
 	pk := c.Env("PRIVATE_KEY_PATH", "")
-	ws := c.Env("WEBHOOK_SECRET_KEY", "")
+
+	secrets, err := config.Secrets()
+
+	if err != nil {
+		log.Panic().Err(err)
+	}
+
+	ws, ok := secrets["WEBHOOK_SECRET_KEY"]
+
+	if ok != true {
+		log.Panic().Msg("Could not read PRIVATE_KEY_PATH from secrets.")
+	}
 
 	log.Info().Msg("Starting service...")
 

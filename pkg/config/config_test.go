@@ -2,6 +2,9 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -68,4 +71,26 @@ func TestEnv(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReadSecrets(t *testing.T) {
+	s := []byte("bar\n")
+	dir, err := ioutil.TempDir("", "secrets")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(dir)
+
+	if err := ioutil.WriteFile(filepath.Join(dir, "foo"), s, 0644); err != nil {
+		panic(err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(dir, ".done"), s, 0644); err != nil {
+		panic(err)
+	}
+
+	expected := map[string]string{"foo": "bar"}
+	secrets, _ := readSecrets(dir)
+
+	assert.Equal(t, expected, secrets)
 }

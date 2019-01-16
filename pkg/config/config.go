@@ -1,7 +1,10 @@
 package config
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -43,4 +46,33 @@ func (c *Config) Env(name string, fallback string) string {
 		c.fatal("Environment variable is not set: %s", name)
 	}
 	return v
+}
+
+// Secrets returns a map of secret names and values
+func Secrets() (map[string]string, error) {
+	s, err := readSecrets("/secrets")
+	return s, err
+}
+
+func readSecrets(d string) (map[string]string, error) {
+	s := make(map[string]string)
+	files, err := ioutil.ReadDir(d)
+
+	if err != nil {
+		return s, err
+	}
+
+	for _, file := range files {
+		n := file.Name()
+		if strings.HasPrefix(n, ".") {
+			continue
+		}
+		data, err := ioutil.ReadFile(filepath.Join(d, n))
+		if err != nil {
+			return s, err
+		}
+		s[n] = strings.TrimSpace(string(data))
+	}
+
+	return s, err
 }

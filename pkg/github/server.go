@@ -12,7 +12,7 @@ import (
 
 // EventHandler interface to allow hooking into GitHub events
 type EventHandler interface {
-	HandleEvent(event interface{}) error
+	HandleEvent(event interface{})
 }
 
 // Server used to listen for and pass off GitHub events

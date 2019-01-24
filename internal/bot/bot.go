@@ -83,7 +83,7 @@ func (b *Bot) Start() {
 }
 
 // HandleEvent interface implementation for Server to pass incoming GitHub events to
-func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
+func (b *Bot) HandleEvent(event interface{}) { //TODO DRY
 	switch event := event.(type) {
 	case *github.CheckSuiteEvent:
 		log.Info().Msg("CheckSuiteEvent received")
@@ -93,11 +93,11 @@ func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
 
 		if id := cs.GetApp().GetID(); id != int64(b.appID) {
 			log.Error().Msgf("Event App ID of %d does not match Bot's App ID", id)
-			return nil
+			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkSuiteRelevantActions, action) {
 			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
-			return nil
+			return
 		}
 
 		r := event.GetRepo()
@@ -115,11 +115,11 @@ func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
 
 		if id := cr.GetApp().GetID(); id != int64(b.appID) {
 			log.Error().Msgf("Event App ID of %d does not match Bot's App ID", id)
-			return nil
+			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkRunRelevantActions, action) {
 			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
-			return nil
+			return
 		}
 
 		r := event.GetRepo()
@@ -136,7 +136,7 @@ func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
 
 		if action := event.GetAction(); !lib.Contains(pullRequestRelevantActions, action) {
 			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
-			return nil
+			return
 		}
 
 		gClient := b.client.CreateClient(int(i.GetID())) // truncating
@@ -147,7 +147,7 @@ func (b *Bot) HandleEvent(event interface{}) error { //TODO DRY
 		log.Debug().Msgf("Unhandled event received: %s. Discarding...", reflect.TypeOf(event).Elem().Name())
 	}
 
-	return nil
+	return
 }
 
 func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) {

@@ -19,9 +19,6 @@ spec:
         role: app-server
         team: ragurney
       annotations:
-        samson/required_env: >
-          APP_ID
-          PRIVATE_KEY_PATH
         secret/WEBHOOK_SECRET_KEY: webhook_secret_key
         secret/PRIVATE_KEY: private_key
 

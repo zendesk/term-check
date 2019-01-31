@@ -1,3 +1,4 @@
+// Package lib contains generic helper functions for massaging and handling data
 package lib
 
 // Contains returns a boolean indicating whether a string is present in a passed in set of strings

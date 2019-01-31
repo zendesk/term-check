@@ -1,44 +1,23 @@
+// Package main provides the entry point for the GitHub application
 package main
 
 import (
-	"strconv"
-
-	"github.com/ragurney/term-check/internal/bot"
-	"github.com/ragurney/term-check/pkg/config"
-
+	"flag"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/ragurney/term-check/internal/bot"
+	"github.com/ragurney/term-check/internal/config"
 )
+
+var filepath = flag.String("config", "config.yaml", "Location of the configuration file.")
 
 func main() {
 	zerolog.TimeFieldFormat = ""
+	flag.Parse()
 
-	c := config.New()
-
-	id, err := strconv.Atoi(c.Env("APP_ID", ""))
-	if err != nil {
-		log.Panic().Err(err)
-	}
-
-	pk := c.Env("PRIVATE_KEY_PATH", "")
-
-	secrets, err := config.Secrets()
-
-	if err != nil {
-		log.Panic().Err(err)
-	}
-
-	ws, ok := secrets["WEBHOOK_SECRET_KEY"]
-
-	if ok != true {
-		log.Panic().Msg("Could not read PRIVATE_KEY_PATH from secrets.")
-	}
+	c := config.New(*filepath)
 
 	log.Info().Msg("Starting service...")
-
-	bot.New(
-		bot.WithAppID(id),
-		bot.WithPrivateKeyPath(pk),
-		bot.WithWebhookSecretKey(ws),
-	).Start()
+	bot.New(c.ForBot, c.ForClient, c.ForServer).Start()
 }

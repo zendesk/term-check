@@ -1,3 +1,4 @@
+// Package GitHub provides both a server and a client that can be used to interact with the GitHub API
 package github
 
 import (
@@ -25,11 +26,11 @@ func NewClient(options ...ClientOption) *Client {
 	return &c
 }
 
-// CreateClient - TODO: rename this
+// CreateClient instantiates a new GitHub client, handling verification of the application id and private key
 func (c *Client) CreateClient(installationID int) *github.Client {
 	itr, err := ghinstallation.NewKeyFromFile(http.DefaultTransport, c.appID, installationID, c.privateKeyPath)
 	if err != nil {
-		log.Fatal().Msg("Failed to parse private key from file.")
+		log.Fatal().Err(err).Msg("Failed to parse private key from file.")
 	}
 
 	return github.NewClient(&http.Client{Transport: itr})

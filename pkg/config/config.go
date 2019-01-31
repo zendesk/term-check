@@ -1,3 +1,5 @@
+// Package config provides some basic helpers to read environment variables, as well as secrets that are set
+// by Samson.
 package config
 
 import (
@@ -50,7 +52,7 @@ func (c *Config) Env(name string, fallback string) string {
 
 // Secrets returns a map of secret names and values
 func Secrets() (map[string]string, error) {
-	s, err := readSecrets("/secrets")
+	s, err := readSecrets("/secrets") // TODO: extract to flag?
 	return s, err
 }
 

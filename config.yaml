@@ -1,0 +1,19 @@
+shared:
+  appID: &appID 18238
+botConfig:
+  appID: *appID
+  termList:
+    - master
+    - slave
+    - whitelist
+    - blacklist
+  checkName: Term Check
+  checkSuccessSummary: ✅ No flagged terms found.
+  checkFailureSummary: ⚠️ Flagged terms found.
+  checkDetails: Placeholder text
+  annotationTitle: Term Notice
+  annotationBody: >
+    Please consider changing the following terms on this line: %s
+clientConfig:
+  appID: *appID
+  privateKeyPath: /secrets/PRIVATE_KEY

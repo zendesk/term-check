@@ -22,4 +22,6 @@ FROM alpine AS term-check
 RUN apk add ca-certificates
 
 COPY --from=server_builder /go/bin/term-check /bin/term-check
-ENTRYPOINT ["/bin/term-check"]
+COPY --from=server_builder /go/src/github.com/ragurney/term-check/config.yaml .
+
+ENTRYPOINT ["/bin/term-check", "--config", "config.yaml"]

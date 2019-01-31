@@ -1,3 +1,5 @@
+// Package bot contains all of the main logic for handling GitHub events, including creating CheckRuns for each
+// Pull Request
 package bot
 
 import (
@@ -10,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/v18/github"
+	"github.com/ragurney/term-check/internal/config"
 	gh "github.com/ragurney/term-check/pkg/github"
 	"github.com/ragurney/term-check/pkg/lib"
 	"github.com/rs/zerolog"
@@ -18,7 +21,6 @@ import (
 )
 
 const (
-	checkName               = "Term Check"
 	checkSuccessConclusion  = "success"
 	checkFailureConclusion  = "neutral"
 	checkRunAnnotationLevel = "warning"
@@ -37,38 +39,46 @@ var (
 		"opened":   {},
 		"reopened": {},
 	}
-	flaggedTerms = []string{
-		"master",
-		"slave",
-	}
 )
 
 // Bot is a type containing config for the GitHub bot logic
 type Bot struct {
-	client           *gh.Client
-	server           *gh.Server
-	privateKeyPath   string
-	webhookSecretKey string
-	appID            int
+	client              *gh.Client
+	server              *gh.Server
+	privateKeyPath      string
+	webhookSecretKey    string
+	appID               int
+	termList            []string
+	checkName           string
+	checkSuccessSummary string
+	checkFailureSummary string
+	checkDetails        string
+	annotationTitle     string
+	annotationBody      string
 }
 
 // New creates a new instance of Bot, taking in BotOptions
-func New(options ...Option) *Bot {
+func New(botConfig *config.BotConfig, clientConfig *config.ClientConfig, serverConfig *config.ServerConfig) *Bot {
 	zerolog.TimeFieldFormat = ""
 
-	b := Bot{}
-
-	for _, option := range options {
-		option(&b)
+	b := Bot{
+		appID:               botConfig.AppID,
+		termList:            botConfig.TermList,
+		checkName:           botConfig.CheckName,
+		checkSuccessSummary: botConfig.CheckSuccessSummary,
+		checkFailureSummary: botConfig.CheckFailureSummary,
+		checkDetails:        botConfig.CheckDetails,
+		annotationTitle:     botConfig.AnnotationTitle,
+		annotationBody:      botConfig.AnnotationBody,
 	}
 
 	b.client = gh.NewClient(
-		gh.WithPrivateKeyPath(b.privateKeyPath),
-		gh.WithAppID(b.appID),
+		gh.WithPrivateKeyPath(clientConfig.PrivateKeyPath),
+		gh.WithAppID(clientConfig.AppID),
 	)
 
 	b.server = gh.NewServer(
-		gh.WithWebhookSecretKey(b.webhookSecretKey),
+		gh.WithWebhookSecretKey(serverConfig.WebhookSecretKey),
 		gh.WithEventHandler(&b),
 	)
 
@@ -83,7 +93,7 @@ func (b *Bot) Start() {
 }
 
 // HandleEvent interface implementation for Server to pass incoming GitHub events to
-func (b *Bot) HandleEvent(event interface{}) { //TODO DRY
+func (b *Bot) HandleEvent(event interface{}) {
 	switch event := event.(type) {
 	case *github.CheckSuiteEvent:
 		log.Info().Msg("CheckSuiteEvent received")
@@ -92,7 +102,7 @@ func (b *Bot) HandleEvent(event interface{}) { //TODO DRY
 		cs := event.GetCheckSuite()
 
 		if id := cs.GetApp().GetID(); id != int64(b.appID) {
-			log.Error().Msgf("Event App ID of %d does not match Bot's App ID", id)
+			log.Error().Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkSuiteRelevantActions, action) {
@@ -114,7 +124,7 @@ func (b *Bot) HandleEvent(event interface{}) { //TODO DRY
 		cr := event.GetCheckRun()
 
 		if id := cr.GetApp().GetID(); id != int64(b.appID) {
-			log.Error().Msgf("Event App ID of %d does not match Bot's App ID", id)
+			log.Error().Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkRunRelevantActions, action) {
@@ -154,21 +164,21 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	headSHA := pr.GetHead().GetSHA()
 
 	log.Debug().Msgf("Creating CheckRun for SHA %s...", headSHA)
-	annotations, err := createAnnotations(ctx, pr, r, ghc)
+	annotations, err := b.createAnnotations(ctx, pr, r, ghc)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create annotations for SHA %s", headSHA)
 		return
 	}
 
 	cro := github.CreateCheckRunOptions{
-		Name:        checkName,
+		Name:        b.checkName,
 		HeadBranch:  pr.GetHead().GetRef(),
 		HeadSHA:     headSHA,
 		Status:      github.String("completed"),
 		CompletedAt: &github.Timestamp{time.Now()},
 		Output: &github.CheckRunOutput{
-			Title:            github.String("Term Check"),
-			Text:             github.String("Placeholder text"),
+			Title:            github.String(b.checkName),
+			Text:             github.String(b.checkDetails),
 			AnnotationsCount: github.Int(len(annotations)),
 			Annotations:      annotations,
 		},
@@ -176,10 +186,10 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	// presence of annotations signals there is usage of flagged terms
 	if len(annotations) > 0 {
 		cro.Conclusion = github.String(checkFailureConclusion)
-		cro.Output.Summary = github.String("⚠️ Flagged terms found.")
+		cro.Output.Summary = github.String(b.checkFailureSummary)
 	} else {
 		cro.Conclusion = github.String(checkSuccessConclusion)
-		cro.Output.Summary = github.String("✅ No flagged terms found.")
+		cro.Output.Summary = github.String(b.checkSuccessSummary)
 	}
 
 	_, resp, err := ghc.Checks.CreateCheckRun(ctx, r.GetOwner().GetLogin(), r.GetName(), cro)
@@ -190,7 +200,7 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	}
 }
 
-func createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) ([]*github.CheckRunAnnotation, error) {
+func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) ([]*github.CheckRunAnnotation, error) {
 	headSHA := pr.GetHead().GetSHA()
 	diff, resp, err := ghc.PullRequests.GetRaw( // TODO: refactor to move methods making requests to Client?
 		ctx,
@@ -210,7 +220,7 @@ func createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Re
 		return []*github.CheckRunAnnotation{}, e
 	}
 
-	re, _ := regexp.Compile(strings.Join(flaggedTerms, "|"))
+	re, _ := regexp.Compile(strings.Join(b.termList, "|"))
 	var annotations = []*github.CheckRunAnnotation{}
 
 	for _, f := range parsedDiff.Files {
@@ -218,7 +228,7 @@ func createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Re
 			adds := h.NewRange
 			for _, l := range adds.Lines {
 				if matches := lib.Unique(re.FindAllString(l.Content, -1)); len(matches) > 0 {
-					annotations = append(annotations, createAnnotation(f, l, matches))
+					annotations = append(annotations, b.createAnnotation(f, l, matches))
 				}
 			}
 		}
@@ -227,8 +237,9 @@ func createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Re
 	return annotations, nil
 }
 
-func createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m []string) (a *github.CheckRunAnnotation) {
-	msg := fmt.Sprintf("Please consider changing the following terms on this line: `%s`", strings.Join(m, ", "))
+func (b *Bot) createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m []string) (a *github.CheckRunAnnotation) {
+	msg := fmt.Sprintf(b.annotationBody, strings.Join(m, ", ")) // Expects %s format string in body
+	msg = strings.Split(msg, "%!")[0]                           // Remove formatting error if user doesn't provide format string in body
 
 	return &github.CheckRunAnnotation{
 		Path:            github.String(f.NewName),
@@ -236,6 +247,6 @@ func createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m []string
 		EndLine:         github.Int(l.Number),
 		AnnotationLevel: github.String(checkRunAnnotationLevel),
 		Message:         github.String(msg),
-		Title:           github.String("Term Notice"),
+		Title:           github.String(b.annotationTitle),
 	}
 }

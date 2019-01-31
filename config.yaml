@@ -7,13 +7,13 @@ botConfig:
     - slave
     - whitelist
     - blacklist
-  checkName: Term Check
-  checkSuccessSummary: ✅ No flagged terms found.
-  checkFailureSummary: ⚠️ Flagged terms found.
-  checkDetails: Placeholder text
-  annotationTitle: Term Notice
+  checkName: Inclusive Language Check
+  checkSuccessSummary: Looks good! 😇
+  checkFailureSummary: 👋🏼 exclusive language
+  checkDetails:  Found exclusive language: %s
+  annotationTitle: Exclusive Language
   annotationBody: >
-    Please consider changing the following terms on this line: %s
+    Hi there! 👋🏼 I see you used the term(s) %s here. This language is exclusionary for members of our community, please consider changing it. For more info, see https://zendesk.atlassian.net/wiki/spaces/ENG/pages/631834099/Engineering+Inclusion
 clientConfig:
   appID: *appID
   privateKeyPath: /secrets/PRIVATE_KEY

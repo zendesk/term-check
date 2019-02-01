@@ -164,14 +164,17 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	headSHA := pr.GetHead().GetSHA()
 
 	log.Debug().Msgf("Creating CheckRun for SHA %s...", headSHA)
+
+	start := time.Now()
 	annotations, err := b.createAnnotations(ctx, pr, r, ghc)
+	duration := time.Since(start)
+
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create annotations for SHA %s", headSHA)
 		return
 	}
 
 	cro := github.CreateCheckRunOptions{
-		Name:        b.checkName,
 		HeadBranch:  pr.GetHead().GetRef(),
 		HeadSHA:     headSHA,
 		Status:      github.String("completed"),
@@ -185,9 +188,11 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	}
 	// presence of annotations signals there is usage of flagged terms
 	if len(annotations) > 0 {
+		cro.Name = createCheckName(true, duration)
 		cro.Conclusion = github.String(checkFailureConclusion)
 		cro.Output.Summary = github.String(b.checkFailureSummary)
 	} else {
+		cro.Name = createCheckName(false, duration)
 		cro.Conclusion = github.String(checkSuccessConclusion)
 		cro.Output.Summary = github.String(b.checkSuccessSummary)
 	}
@@ -249,4 +254,15 @@ func (b *Bot) createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m
 		Message:         github.String(msg),
 		Title:           github.String(b.annotationTitle),
 	}
+}
+
+func createCheckName(succeeded bool, duration time.Duration) string {
+	msg := fmt.Sprintf("Scanned in %s  -- ", duration)
+	if succeeded {
+		msg += "Terms Found"
+	} else {
+		msg += "No Terms Found"
+	}
+
+	return msg
 }

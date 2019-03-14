@@ -1,4 +1,4 @@
-module github.com/ragurney/term-check
+module github.com/zendesk/term-check
 
 require (
 	github.com/bradleyfalzon/ghinstallation v0.1.2

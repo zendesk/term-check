@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/google/go-github/v18/github"
-	"github.com/ragurney/term-check/internal/config"
-	gh "github.com/ragurney/term-check/pkg/github"
-	"github.com/ragurney/term-check/pkg/lib"
+	"github.com/zendesk/term-check/internal/config"
+	gh "github.com/zendesk/term-check/pkg/github"
+	"github.com/zendesk/term-check/pkg/lib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/waigani/diffparser"

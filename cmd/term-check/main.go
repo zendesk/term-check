@@ -6,8 +6,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/ragurney/term-check/internal/bot"
-	"github.com/ragurney/term-check/internal/config"
+	"github.com/zendesk/term-check/internal/bot"
+	"github.com/zendesk/term-check/internal/config"
 )
 
 var filepath = flag.String("config", "config.yaml", "Location of the configuration file.")

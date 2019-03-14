@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
-	"github.com/ragurney/term-check/pkg/config"
+	"github.com/zendesk/term-check/pkg/config"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

@@ -32,7 +32,6 @@ var (
 		"rerequested": {},
 	}
 	checkRunRelevantActions = map[string]struct{}{
-		"created":     {},
 		"rerequested": {},
 	}
 	pullRequestRelevantActions = map[string]struct{}{

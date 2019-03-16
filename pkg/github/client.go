@@ -2,7 +2,7 @@
 package github
 
 import (
-	"github.com/bradleyfalzon/ghinstallation"
+	"github.com/DataDog/ghinstallation"
 	"github.com/google/go-github/v18/github"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

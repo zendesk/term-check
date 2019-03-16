@@ -1,7 +1,7 @@
 module github.com/zendesk/term-check
 
 require (
-	github.com/bradleyfalzon/ghinstallation v0.1.2
+	github.com/DataDog/ghinstallation v0.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/google/go-github/v18 v18.2.0
 	github.com/gorilla/context v1.1.1 // indirect

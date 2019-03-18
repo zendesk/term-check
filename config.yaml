@@ -3,7 +3,6 @@ shared:
 botConfig:
   appID: *appID
   termList:
-    - master
     - slave
   checkName: Inclusive Language Check
   checkSuccessSummary: Looks good! 😇

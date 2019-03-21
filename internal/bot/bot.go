@@ -12,12 +12,13 @@ import (
 	"time"
 
 	"github.com/google/go-github/v18/github"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/sabhiram/go-gitignore"
+	"github.com/waigani/diffparser"
 	"github.com/zendesk/term-check/internal/config"
 	gh "github.com/zendesk/term-check/pkg/github"
 	"github.com/zendesk/term-check/pkg/lib"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"github.com/waigani/diffparser"
 )
 
 const (
@@ -54,6 +55,7 @@ type Bot struct {
 	checkDetails        string
 	annotationTitle     string
 	annotationBody      string
+	installationConfigs *config.InstallationConfigs
 }
 
 // New creates a new instance of Bot, taking in BotOptions
@@ -69,6 +71,7 @@ func New(botConfig *config.BotConfig, clientConfig *config.ClientConfig, serverC
 		checkDetails:        botConfig.CheckDetails,
 		annotationTitle:     botConfig.AnnotationTitle,
 		annotationBody:      botConfig.AnnotationBody,
+		installationConfigs: botConfig.InstallationConfigs,
 	}
 
 	b.client = gh.NewClient(
@@ -201,6 +204,11 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 
 func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) ([]*github.CheckRunAnnotation, error) {
 	headSHA := pr.GetHead().GetSHA()
+
+	// Get installation configuration
+	ic := b.installationConfigs.GetConfig(ctx, r, ghc)
+
+	// Get PR diff
 	diff, resp, err := ghc.PullRequests.GetRaw( // TODO: refactor to move methods making requests to Client?
 		ctx,
 		r.GetOwner().GetLogin(),
@@ -212,7 +220,6 @@ func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *
 		e := fmt.Errorf("Failed to get diff for %s: %s", headSHA, err)
 		return []*github.CheckRunAnnotation{}, e
 	}
-
 	parsedDiff, err := diffparser.Parse(diff)
 	if err != nil {
 		e := fmt.Errorf("Failed to parse diff for %s: %s", headSHA, err)
@@ -223,6 +230,19 @@ func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *
 	var annotations = []*github.CheckRunAnnotation{}
 
 	for _, f := range parsedDiff.Files {
+		// Skip over any files listed in `ignore`
+		if ignorePatterns := ic.Ignore; ignorePatterns != nil {
+			ignoreMatcher, err := ignore.CompileIgnoreLines(ignorePatterns...)
+
+			if err != nil {
+				log.Warn().Err(err).Msg("Disregarding `ignore` configuration")
+			} else {
+				if ignoreMatcher.MatchesPath(f.NewName) {
+					continue
+				}
+			}
+		}
+
 		for _, h := range f.Hunks {
 			adds := h.NewRange
 			for _, l := range adds.Lines {

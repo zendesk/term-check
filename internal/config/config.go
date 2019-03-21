@@ -3,14 +3,22 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net/http"
 
-	"github.com/zendesk/term-check/pkg/config"
+	"github.com/google/go-github/v18/github"
+	gc "github.com/patrickmn/go-cache"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/zendesk/term-check/pkg/config"
+	"strconv"
+	"time"
 )
+
+const installationConfigFileLocation = "./.github/inclusive_lang.yaml"
 
 // TODO: write Unmarshal() to require values
 
@@ -24,6 +32,7 @@ type BotConfig struct {
 	CheckDetails        string   `yaml:"checkDetails"`
 	AnnotationTitle     string   `yaml:"annotationTitle"`
 	AnnotationBody      string   `yaml:"annotationBody"`
+	InstallationConfigs *InstallationConfigs
 }
 
 // ClientConfig holds all config values necessary for the client
@@ -37,13 +46,25 @@ type ServerConfig struct {
 	WebhookSecretKey string `yaml:"webhookSecretKey"`
 }
 
+// InstallationConfigs holds a cache containing repo-specific configuration
+type InstallationConfigs struct {
+	cache *gc.Cache
+}
+
+// InstallationConfig is an object holding all configuration values for one repo
+// ignore - array of paths following `.gitignore` rules to ignore in the term check
+type InstallationConfig struct {
+	Ignore []string `yaml:"ignore"`
+}
+
 // Config holds all config values for the applicaiton, separated by module
 type Config struct {
-	ForBot     *BotConfig
-	ForClient  *ClientConfig
-	ForServer  *ServerConfig
-	configUtil *config.Config
-	secretHash map[string]string
+	ForBot          *BotConfig
+	ForClient       *ClientConfig
+	ForServer       *ServerConfig
+	ForInstallation *InstallationConfig
+	configUtil      *config.Config
+	secretHash      map[string]string
 }
 
 // New instantiates the Config object with configuration values from the environment for the BotConfig, client, and
@@ -97,6 +118,8 @@ func (c *Config) getBotConfig(config []byte) (*BotConfig, error) {
 	yaml.Unmarshal(config, &d)
 	bc := d.B
 
+	bc.InstallationConfigs = c.getInstallationConfigs()
+
 	if len(bc.TermList) == 0 {
 		return &BotConfig{}, errors.New("TERM_LIST must contain at least one item")
 	}
@@ -126,6 +149,47 @@ func (c *Config) getServerConfig(config []byte) (*ServerConfig, error) {
 	return &ServerConfig{
 		WebhookSecretKey: ws,
 	}, nil
+}
+
+func (c *Config) getInstallationConfigs() *InstallationConfigs {
+	return &InstallationConfigs{
+		cache: gc.New(1*time.Hour, 10*time.Minute),
+	}
+}
+
+// GetConfig retreives and stores the configuration for a repository
+func (ic *InstallationConfigs) GetConfig(ctx context.Context, repo *github.Repository, client *github.Client) *InstallationConfig {
+	repoID := strconv.FormatInt(repo.GetID(), 10)
+
+	if config, found := ic.cache.Get(repoID); found {
+		return config.(*InstallationConfig)
+	}
+
+	config := InstallationConfig{}
+	var rawConfig string
+
+	fc, _, resp, err := client.Repositories.GetContents(
+		ctx,
+		repo.GetOwner().GetLogin(),
+		repo.GetName(),
+		installationConfigFileLocation,
+		&github.RepositoryContentGetOptions{},
+	)
+	if err == nil {
+		rawConfig, err = fc.GetContent()
+	}
+
+	// Store empty configuration if error or file is not there
+	if err != nil || resp.StatusCode != http.StatusOK {
+		ic.cache.Set(repoID, &config, 0)
+	}
+
+	yaml.Unmarshal([]byte(rawConfig), &config)
+
+	// Store new configuration
+	ic.cache.Set(repoID, &config, 0)
+
+	return &config
 }
 
 func panic(err error) {

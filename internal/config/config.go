@@ -3,14 +3,19 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"net/http"
 
-	"github.com/zendesk/term-check/pkg/config"
+	"github.com/google/go-github/v18/github"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/zendesk/term-check/pkg/config"
 )
+
+const repoConfigFileLocation = "./.github/inclusive_lang.yaml"
 
 // TODO: write Unmarshal() to require values
 
@@ -35,6 +40,12 @@ type ClientConfig struct {
 // ServerConfig holds all config values necessary for the server
 type ServerConfig struct {
 	WebhookSecretKey string `yaml:"webhookSecretKey"`
+}
+
+// RepoConfig is an object holding all configuration values for one repo
+// ignore - array of paths following `.gitignore` rules to ignore in the term check
+type RepoConfig struct {
+	Ignore []string `yaml:"ignore"`
 }
 
 // Config holds all config values for the applicaiton, separated by module
@@ -88,6 +99,34 @@ func New(configFilepath string) *Config {
 	}
 }
 
+// GetRepoConfig retreives the configuration for a repository
+func GetRepoConfig(ctx context.Context, repo *github.Repository, head string, client *github.Client) *RepoConfig {
+	config := RepoConfig{}
+	var rawConfig string
+
+	fc, _, resp, err := client.Repositories.GetContents(
+		ctx,
+		repo.GetOwner().GetLogin(),
+		repo.GetName(),
+		repoConfigFileLocation,
+		&github.RepositoryContentGetOptions{Ref: head},
+	)
+	if err == nil {
+		rawConfig, err = fc.GetContent()
+	}
+
+	// Store empty configuration if error or file is not there
+	if err == nil && resp.StatusCode == http.StatusOK {
+		yaml.Unmarshal([]byte(rawConfig), &config)
+	}
+
+	return &config
+}
+
+func panic(err error) {
+	log.Panic().Err(err).Msg("Error encountered while parsing configuration")
+}
+
 func (c *Config) getBotConfig(config []byte) (*BotConfig, error) {
 	type driver struct {
 		B BotConfig `yaml:"botConfig"`
@@ -126,8 +165,4 @@ func (c *Config) getServerConfig(config []byte) (*ServerConfig, error) {
 	return &ServerConfig{
 		WebhookSecretKey: ws,
 	}, nil
-}
-
-func panic(err error) {
-	log.Panic().Err(err).Msg("Error encountered while parsing configuration")
 }

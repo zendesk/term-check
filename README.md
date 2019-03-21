@@ -2,6 +2,56 @@
 
 This bot is for our Inclusive Language initiative inside Zendesk Engineering.
 
+## Configuration
+
+### Bot Configuration
+
+Configuration for the bot's behavior is contained in `config.yaml`, e.x.
+
+```yaml
+# Any shared configuration between fields
+shared:
+  # ID of the GitHub application
+  appID: &appID 123456
+botConfig:
+  appID: *appID
+  # List of terms to look for and flag in code
+  termList:
+    - slave
+  # Name of the check. Will appear in the status list and as the title on the 'details' page
+  checkName: Inclusive Language Check
+  # Check summary to set when no terms are found
+  checkSuccessSummary: Looks good! 😇
+  # Check summary to set when terms are found
+  checkFailureSummary: 👋 exclusive language
+  # Generic check details text
+  checkDetails: "Language check results:"
+  # Text for the title of check annotations created for each flagged term in the code
+  annotationTitle: Exclusive Language
+  # Text for the body of each annotation. Supports one format string [%s] which will be replaced by the flagged terms
+  # found on that line
+  annotationBody: |
+    Hi there! 👋 I see you used the term(s) [%s] here. This language is exclusionary for members of our community,
+    please consider changing it.
+clientConfig:
+  appID: *appID
+  # Path to the private key generated for the GitHub application
+  privateKeyPath: /secrets/PRIVATE_KEY
+```
+
+### Repo-specific Configuration
+
+Certain behaviors are configurable on a per repository basis. Add a `.github/inclusive_lang.yaml` file to your
+repository based off of the following template:
+
+```yaml
+# An array of patterns following .gitignore rules (http://git-scm.com/docs/gitignore) specifying which files and
+# directories should be ignored by the app
+ignore:
+  - foo
+  - bar/
+```
+
 ## Copyright and license
 
 Copyright 2019 Zendesk, Inc.

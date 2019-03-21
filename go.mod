@@ -15,6 +15,7 @@ require (
 	github.com/juju/version v0.0.0-20180108022336-b64dbd566305 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/rs/zerolog v1.10.0
+	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94
 	github.com/stretchr/testify v1.3.0
 	github.com/waigani/diffparser v0.0.0-20180518143736-8ef6bf958d9e
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect

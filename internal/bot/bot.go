@@ -203,9 +203,6 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) ([]*github.CheckRunAnnotation, error) {
 	headSHA := pr.GetHead().GetSHA()
 
-	// Get repository configuration
-	ic := config.GetRepoConfig(ctx, r, headSHA, ghc)
-
 	// Get PR diff
 	diff, resp, err := ghc.PullRequests.GetRaw( // TODO: refactor to move methods making requests to Client?
 		ctx,
@@ -229,16 +226,8 @@ func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *
 
 	for _, f := range parsedDiff.Files {
 		// Skip over any files listed in `ignore`
-		if ignorePatterns := ic.Ignore; ignorePatterns != nil {
-			ignoreMatcher, err := ignore.CompileIgnoreLines(ignorePatterns...)
-
-			if err != nil {
-				log.Warn().Err(err).Msg("Disregarding `ignore` configuration")
-			} else {
-				if ignoreMatcher.MatchesPath(f.NewName) {
-					continue
-				}
-			}
+		if ignoredByRepo(ctx, r, headSHA, f.NewName, ghc) {
+			continue
 		}
 
 		for _, h := range f.Hunks {
@@ -266,4 +255,20 @@ func (b *Bot) createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m
 		Message:         github.String(msg),
 		Title:           github.String(b.annotationTitle),
 	}
+}
+
+func ignoredByRepo(ctx context.Context, r *github.Repository, headSHA, filename string, ghc *github.Client) bool {
+	ic := config.GetRepoConfig(ctx, r, headSHA, ghc) // Get repository configuration
+
+	if ignorePatterns := ic.Ignore; ignorePatterns != nil {
+		ignoreMatcher, err := ignore.CompileIgnoreLines(ignorePatterns...)
+
+		if err != nil {
+			log.Warn().Err(err).Msg("Disregarding `ignore` configuration")
+			return false
+		}
+		return ignoreMatcher.MatchesPath(filename)
+	}
+
+	return false
 }

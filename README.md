@@ -41,7 +41,7 @@ clientConfig:
 
 ### Repo-specific Configuration
 
-Certain behaviors are configurable on a per repository basis. Add a `.github/inclusive_lang.yaml` file to your
+Certain behaviors are configurable on a per repository basis. Add a `.github/term-check.yaml` file to your
 repository based off of the following template:
 
 ```yaml

@@ -15,7 +15,7 @@ import (
 	"github.com/zendesk/term-check/pkg/config"
 )
 
-const repoConfigFileLocation = "./.github/inclusive_lang.yaml"
+const repoConfigFileLocation = "./.github/term-check.yaml"
 
 // TODO: write Unmarshal() to require values
 

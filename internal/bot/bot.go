@@ -234,10 +234,16 @@ func (b *Bot) createAnnotations(ctx context.Context, pr *github.PullRequest, r *
 		}
 
 		for _, h := range f.Hunks {
+			if f.Mode == diffparser.DELETED {
+				continue
+			}
+
 			adds := h.NewRange
 			for _, l := range adds.Lines {
-				if matches := lib.Unique(re.FindAllString(l.Content, -1)); len(matches) > 0 {
-					annotations = append(annotations, b.createAnnotation(f, l, matches))
+				if l.Mode == diffparser.ADDED {
+					if matches := lib.Unique(re.FindAllString(l.Content, -1)); len(matches) > 0 {
+						annotations = append(annotations, b.createAnnotation(f, l, matches))
+					}
 				}
 			}
 		}

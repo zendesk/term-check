@@ -11,7 +11,7 @@ botConfig:
   annotationTitle: Exclusive Language
   annotationBody: |
     Hi there! 👋 I see you used the term(s) [%s] here. This language is exclusionary for members of our community,
-    please consider changing it. For more info, see https://zendesk.atlassian.net/wiki/spaces/ENG/pages/631834099/Engineering+Inclusion.
+    please consider changing it.
 clientConfig:
   appID: *appID
   privateKeyPath: /secrets/PRIVATE_KEY

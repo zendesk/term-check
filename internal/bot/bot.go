@@ -14,7 +14,7 @@ import (
 	"github.com/google/go-github/v18/github"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/sabhiram/go-gitignore"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/waigani/diffparser"
 	"github.com/zendesk/term-check/internal/config"
 	gh "github.com/zendesk/term-check/pkg/github"
@@ -29,15 +29,15 @@ const (
 
 var (
 	checkSuiteRelevantActions = map[string]struct{}{
-		"requested":   {},
 		"rerequested": {},
 	}
 	checkRunRelevantActions = map[string]struct{}{
 		"rerequested": {},
 	}
 	pullRequestRelevantActions = map[string]struct{}{
-		"opened":   {},
-		"reopened": {},
+		"opened":      {},
+		"reopened":    {},
+		"synchronize": {},
 	}
 )
 
@@ -96,17 +96,23 @@ func (b *Bot) Start() {
 func (b *Bot) HandleEvent(event interface{}) {
 	switch event := event.(type) {
 	case *github.CheckSuiteEvent:
-		log.Info().Msg("CheckSuiteEvent received")
-
 		i := event.GetInstallation()
 		cs := event.GetCheckSuite()
 
+		var shas strings.Builder
+		for _, pr := range cs.PullRequests {
+			fmt.Fprintf(&shas, "%s ", pr.GetHead().GetSHA())
+		}
+		shasString := strings.TrimSpace(shas.String())
+
+		log.Debug().Str("SHA", shasString).Msg("CheckSuiteEvent received")
+
 		if id := cs.GetApp().GetID(); id != int64(b.appID) {
-			log.Error().Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
+			log.Debug().Str("SHA", shasString).Msgf("\tEvent App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkSuiteRelevantActions, action) {
-			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
+			log.Debug().Str("SHA", shasString).Msgf("\tUnhandled action received: %s. Discarding...", action)
 			return
 		}
 
@@ -118,17 +124,23 @@ func (b *Bot) HandleEvent(event interface{}) {
 			b.createCheckRun(ctx, pr, r, gClient)
 		}
 	case *github.CheckRunEvent:
-		log.Debug().Msg("CheckRunEvent received")
-
 		i := event.GetInstallation()
 		cr := event.GetCheckRun()
 
+		var shas strings.Builder
+		for _, pr := range cr.PullRequests {
+			fmt.Fprintf(&shas, "%s ", pr.GetHead().GetSHA())
+		}
+		shasString := strings.TrimSpace(shas.String())
+
+		log.Debug().Str("SHA", shasString).Msg("CheckRun received")
+
 		if id := cr.GetApp().GetID(); id != int64(b.appID) {
-			log.Error().Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
+			log.Debug().Str("SHA", shasString).Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
 		if action := event.GetAction(); !lib.Contains(checkRunRelevantActions, action) {
-			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
+			log.Debug().Str("SHA", shasString).Msgf("Unhandled action received: %s. Discarding...", action)
 			return
 		}
 
@@ -140,19 +152,21 @@ func (b *Bot) HandleEvent(event interface{}) {
 			b.createCheckRun(ctx, pr, r, gClient)
 		}
 	case *github.PullRequestEvent:
-		log.Debug().Msg("PullRequestEvent received")
+		pr := event.GetPullRequest()
+		headSHA := pr.GetHead().GetSHA()
 
+		log.Debug().Str("SHA", headSHA).Msgf("PullRequestEvent received")
 		i := event.GetInstallation()
 
 		if action := event.GetAction(); !lib.Contains(pullRequestRelevantActions, action) {
-			log.Debug().Msgf("Unhandled action received: %s. Discarding...", action)
+			log.Debug().Str("SHA", headSHA).Msgf("Unhandled action received: %s. Discarding...", action)
 			return
 		}
 
 		gClient := b.client.CreateClient(int(i.GetID())) // truncating
 		ctx := context.Background()
 
-		b.createCheckRun(ctx, event.GetPullRequest(), event.GetRepo(), gClient)
+		b.createCheckRun(ctx, pr, event.GetRepo(), gClient)
 	default:
 		log.Debug().Msgf("Unhandled event received: %s. Discarding...", reflect.TypeOf(event).Elem().Name())
 	}
@@ -163,10 +177,10 @@ func (b *Bot) HandleEvent(event interface{}) {
 func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) {
 	headSHA := pr.GetHead().GetSHA()
 
-	log.Debug().Msgf("Creating CheckRun for SHA %s...", headSHA)
+	log.Debug().Str("SHA", headSHA).Msg("Creating CheckRun...")
 	annotations, err := b.createAnnotations(ctx, pr, r, ghc)
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to create annotations for SHA %s", headSHA)
+		log.Error().Str("SHA", headSHA).Err(err).Msg("Failed to create annotations")
 		return
 	}
 
@@ -194,9 +208,9 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 
 	_, resp, err := ghc.Checks.CreateCheckRun(ctx, r.GetOwner().GetLogin(), r.GetName(), cro)
 	if code := resp.StatusCode; err != nil || (code < 200 || code > 299) {
-		log.Error().Err(err).Msgf("Failed to POST CheckRun for SHA %s", headSHA)
+		log.Error().Str("SHA", headSHA).Err(err).Msgf("Failed to POST CheckRun")
 	} else {
-		log.Debug().Msgf("Successfully created CheckRun for SHA %s", headSHA)
+		log.Debug().Str("SHA", headSHA).Msgf("Successfully created CheckRun")
 	}
 }
 

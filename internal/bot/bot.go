@@ -105,16 +105,19 @@ func (b *Bot) HandleEvent(event interface{}) {
 		}
 		shasString := strings.TrimSpace(shas.String())
 
-		log.Debug().Str("SHA", shasString).Msg("CheckSuiteEvent received")
-
 		if id := cs.GetApp().GetID(); id != int64(b.appID) {
+			log.Debug().Str("SHA", shasString).Msg("CheckSuiteEvent received")
 			log.Debug().Str("SHA", shasString).Msgf("\tEvent App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
+
 		if action := event.GetAction(); !lib.Contains(checkSuiteRelevantActions, action) {
+			log.Debug().Str("SHA", shasString).Msg("CheckSuiteEvent received")
 			log.Debug().Str("SHA", shasString).Msgf("\tUnhandled action received: %s. Discarding...", action)
 			return
 		}
+
+		log.Info().Str("SHA", shasString).Msg("CheckSuiteEvent received")
 
 		r := event.GetRepo()
 		gClient := b.client.CreateClient(int(i.GetID())) // truncating
@@ -133,16 +136,19 @@ func (b *Bot) HandleEvent(event interface{}) {
 		}
 		shasString := strings.TrimSpace(shas.String())
 
-		log.Debug().Str("SHA", shasString).Msg("CheckRun received")
-
 		if id := cr.GetApp().GetID(); id != int64(b.appID) {
+			log.Debug().Str("SHA", shasString).Msg("CheckRun received")
 			log.Debug().Str("SHA", shasString).Msgf("Event App ID of %d does not match Bot's App ID of %d", id, b.appID)
 			return
 		}
+
 		if action := event.GetAction(); !lib.Contains(checkRunRelevantActions, action) {
+			log.Debug().Str("SHA", shasString).Msg("CheckRun received")
 			log.Debug().Str("SHA", shasString).Msgf("Unhandled action received: %s. Discarding...", action)
 			return
 		}
+
+		log.Info().Str("SHA", shasString).Msg("CheckRun received")
 
 		r := event.GetRepo()
 		gClient := b.client.CreateClient(int(i.GetID())) // truncating
@@ -155,13 +161,15 @@ func (b *Bot) HandleEvent(event interface{}) {
 		pr := event.GetPullRequest()
 		headSHA := pr.GetHead().GetSHA()
 
-		log.Debug().Str("SHA", headSHA).Msgf("PullRequestEvent received")
 		i := event.GetInstallation()
 
 		if action := event.GetAction(); !lib.Contains(pullRequestRelevantActions, action) {
+			log.Debug().Str("SHA", headSHA).Msgf("PullRequestEvent received")
 			log.Debug().Str("SHA", headSHA).Msgf("Unhandled action received: %s. Discarding...", action)
 			return
 		}
+
+		log.Info().Str("SHA", headSHA).Msgf("PullRequestEvent received")
 
 		gClient := b.client.CreateClient(int(i.GetID())) // truncating
 		ctx := context.Background()
@@ -177,7 +185,7 @@ func (b *Bot) HandleEvent(event interface{}) {
 func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) {
 	headSHA := pr.GetHead().GetSHA()
 
-	log.Debug().Str("SHA", headSHA).Msg("Creating CheckRun...")
+	log.Info().Str("SHA", headSHA).Msg("Creating CheckRun...")
 	annotations, err := b.createAnnotations(ctx, pr, r, ghc)
 	if err != nil {
 		log.Error().Str("SHA", headSHA).Err(err).Msg("Failed to create annotations")
@@ -210,7 +218,7 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 	if code := resp.StatusCode; err != nil || (code < 200 || code > 299) {
 		log.Error().Str("SHA", headSHA).Err(err).Msgf("Failed to POST CheckRun")
 	} else {
-		log.Debug().Str("SHA", headSHA).Msgf("Successfully created CheckRun")
+		log.Info().Str("SHA", headSHA).Msgf("Successfully created CheckRun")
 	}
 }
 

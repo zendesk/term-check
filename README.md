@@ -52,6 +52,9 @@ ignore:
   - bar/
 ```
 
+## Deploying Your Own Instance
+See [docs/deploy.md](docs/deploy.md) for instructions to deploy your own term-check instance.
+
 ## Copyright and license
 
 Copyright 2019 Zendesk, Inc.

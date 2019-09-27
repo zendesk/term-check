@@ -45,8 +45,6 @@ var (
 type Bot struct {
 	client              *gh.Client
 	server              *gh.Server
-	privateKeyPath      string
-	webhookSecretKey    string
 	appID               int
 	termList            []string
 	checkName           string
@@ -178,8 +176,6 @@ func (b *Bot) HandleEvent(event interface{}) {
 	default:
 		log.Debug().Msgf("Unhandled event received: %s. Discarding...", reflect.TypeOf(event).Elem().Name())
 	}
-
-	return
 }
 
 func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *github.Repository, ghc *github.Client) {
@@ -197,7 +193,7 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 		HeadBranch:  pr.GetHead().GetRef(),
 		HeadSHA:     headSHA,
 		Status:      github.String("completed"),
-		CompletedAt: &github.Timestamp{time.Now()},
+		CompletedAt: &github.Timestamp{Time: time.Now()},
 		Output: &github.CheckRunOutput{
 			Title:            github.String(b.checkName),
 			Text:             github.String(b.checkDetails),

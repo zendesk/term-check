@@ -1,13 +1,14 @@
-// Package config provides objects containing configuration for specific parts of the applicaiton.
+// Package config provides objects containing configuration for specific parts of the application.
 // It also encapsulates the logic needed to read the configuration from the environment.
 package config
 
 import (
 	"context"
 	"errors"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/google/go-github/v18/github"
 	"github.com/rs/zerolog"
@@ -48,7 +49,7 @@ type RepoConfig struct {
 	Ignore []string `yaml:"ignore"`
 }
 
-// Config holds all config values for the applicaiton, separated by module
+// Config holds all config values for the application, separated by module
 type Config struct {
 	ForBot     *BotConfig
 	ForClient  *ClientConfig
@@ -117,7 +118,10 @@ func GetRepoConfig(ctx context.Context, repo *github.Repository, head string, cl
 
 	// Store empty configuration if error or file is not there
 	if err == nil && resp.StatusCode == http.StatusOK {
-		yaml.Unmarshal([]byte(rawConfig), &config)
+		err = yaml.Unmarshal([]byte(rawConfig), &config)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return &config
@@ -133,7 +137,10 @@ func (c *Config) getBotConfig(config []byte) (*BotConfig, error) {
 	}
 
 	d := driver{}
-	yaml.Unmarshal(config, &d)
+	err := yaml.Unmarshal(config, &d)
+	if err != nil {
+		panic(err)
+	}
 	bc := d.B
 
 	if len(bc.TermList) == 0 {
@@ -149,7 +156,10 @@ func (c *Config) getClientConfig(config []byte) (*ClientConfig, error) {
 	}
 
 	d := driver{}
-	yaml.Unmarshal(config, &d)
+	err := yaml.Unmarshal(config, &d)
+	if err != nil {
+		panic(err)
+	}
 	cc := d.C
 
 	return &cc, nil
@@ -158,7 +168,7 @@ func (c *Config) getClientConfig(config []byte) (*ClientConfig, error) {
 func (c *Config) getServerConfig(config []byte) (*ServerConfig, error) {
 	ws, ok := c.secretHash["WEBHOOK_SECRET_KEY"]
 
-	if ok != true {
+	if !ok {
 		return &ServerConfig{}, errors.New("WEBHOOK_SECRET_KEY not present in secrets hash")
 	}
 

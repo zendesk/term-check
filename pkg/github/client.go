@@ -1,4 +1,4 @@
-// Package GitHub provides both a server and a client that can be used to interact with the GitHub API
+// Package github provides both a server and a client that can be used to interact with the GitHub API
 package github
 
 import (

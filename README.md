@@ -39,7 +39,7 @@ clientConfig:
   privateKeyPath: /secrets/PRIVATE_KEY
 ```
 
-### Repo-specific Configuration
+### Repo-Specific Configuration
 
 Certain behaviors are configurable on a per repository basis. Add a `.github/term-check.yaml` file to your
 repository based off of the following template:
@@ -55,7 +55,7 @@ ignore:
 ## Deploying Your Own Instance
 See [docs/deploy.md](docs/deploy.md) for instructions to deploy your own term-check instance.
 
-## Copyright and license
+## Copyright and License
 
 Copyright 2019 Zendesk, Inc.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.

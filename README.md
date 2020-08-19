@@ -2,6 +2,8 @@
 
 This bot is for our Inclusive Language initiative inside Zendesk Engineering.
 
+![Screen Shot 2020-08-19 at 11 00 23 AM](https://user-images.githubusercontent.com/15261525/90672683-582bbb00-e20b-11ea-844e-3ddc2ab85c29.png)
+
 ## Configuration
 
 ### Bot Configuration

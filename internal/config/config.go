@@ -10,7 +10,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/google/go-github/v18/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/zendesk/term-check/pkg/config"

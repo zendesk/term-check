@@ -1,9 +1,12 @@
 module github.com/zendesk/term-check
 
+go 1.14
+
 require (
 	github.com/DataDog/ghinstallation v0.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/google/go-github/v18 v18.2.0
+	github.com/google/go-github/v32 v32.1.0
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
 	github.com/juju/clock v0.0.0-20180808021310-bab88fc67299 // indirect

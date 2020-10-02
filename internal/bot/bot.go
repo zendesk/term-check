@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v18/github"
+	"github.com/google/go-github/v32/github"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	ignore "github.com/sabhiram/go-gitignore"
@@ -190,7 +190,6 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 
 	cro := github.CreateCheckRunOptions{
 		Name:        b.checkName,
-		HeadBranch:  pr.GetHead().GetRef(),
 		HeadSHA:     headSHA,
 		Status:      github.String("completed"),
 		CompletedAt: &github.Timestamp{Time: time.Now()},

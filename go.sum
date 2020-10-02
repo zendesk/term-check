@@ -1,3 +1,5 @@
+github.com/DataDog/ghinstallation v0.1.2-0.20190205220828-59991dd7261d h1:Z+MFmUkyvOfd74YaB0Atr5IKtunbcBDmSqPRhwZiNOc=
+github.com/DataDog/ghinstallation v0.1.2-0.20190205220828-59991dd7261d/go.mod h1:XS43SJ2Jf//QMDRQOrLNdo2v4znrpvmH87JiFWhPhPM=
 github.com/DataDog/ghinstallation v0.1.2 h1:rvpqEB8HXGBzr/SshdwqPe5fOt/QPk0RypnqQUXwwTo=
 github.com/DataDog/ghinstallation v0.1.2/go.mod h1:XS43SJ2Jf//QMDRQOrLNdo2v4znrpvmH87JiFWhPhPM=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

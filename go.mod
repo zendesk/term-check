@@ -3,7 +3,7 @@ module github.com/zendesk/term-check
 go 1.14
 
 require (
-	github.com/DataDog/ghinstallation v0.1.2
+	github.com/DataDog/ghinstallation v0.1.2-0.20190205220828-59991dd7261d
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/google/go-github/v18 v18.2.0
 	github.com/google/go-github/v32 v32.1.0

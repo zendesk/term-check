@@ -190,7 +190,6 @@ func (b *Bot) createCheckRun(ctx context.Context, pr *github.PullRequest, r *git
 
 	cro := github.CreateCheckRunOptions{
 		Name:        b.checkName,
-		HeadBranch:  pr.GetHead().GetRef(),
 		HeadSHA:     headSHA,
 		Status:      github.String("completed"),
 		CompletedAt: &github.Timestamp{Time: time.Now()},

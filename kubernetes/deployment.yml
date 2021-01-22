@@ -5,7 +5,7 @@ metadata:
   labels:
     project: term-check
     role: app-server
-    team: ragurney
+    team: bots
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
       labels:
         project: term-check
         role: app-server
-        team: ragurney
+        team: bots
       annotations:
         secret/WEBHOOK_SECRET_KEY: webhook_secret_key
         secret/PRIVATE_KEY: private_key
@@ -43,7 +43,7 @@ metadata:
   labels:
     project: term-check
     role: app-server
-    team: ragurney
+    team: bots
 spec:
   selector:
     project: term-check

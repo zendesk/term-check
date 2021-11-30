@@ -1,0 +1,25 @@
+name: CI Tests
+
+on:
+  pull_request:
+  push:
+    branches: master
+
+jobs:
+  run-tests:
+    name: Run Tests
+    runs-on: zendesk-stable
+    env:
+      GO111MODULE: on
+    steps:
+    - uses: zendesk/setup-go@v2
+      with:
+        go-version: 1.12.7
+    - uses: zendesk/cache@v2
+      with:
+        path: pkg
+        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+    - run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s -- -b $GOPATH/bin v1.19.1
+    - run: go mod download
+    - run: golangci-lint run
+    - run: make

@@ -46,3 +46,5 @@ jobs:
         fetch-depth: 3
     - name: golangci-lint
       uses: zendesk/golangci-lint-action@v2
+      with:
+        working-directory: ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check

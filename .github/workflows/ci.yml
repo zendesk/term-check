@@ -24,11 +24,13 @@ jobs:
       with:
         path: ${{ github.workspace }}/gopath
         key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
-    - run: |
+    - name: go mod download
+      run: |
         pushd ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
         go mod download
         echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-    - run: |
+    - name: make
+      run: |
         pushd ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
         make
 

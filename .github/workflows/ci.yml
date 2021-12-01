@@ -23,7 +23,20 @@ jobs:
       with:
         path: ${{ github.workspace }}/gopath
         key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
-    - name: golangci-lint
-      uses: zendesk/golangci-lint-action@v2
     - run: go mod download
     - run: make
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+      GOPATH: ${{ github.workspace }}/gopath
+    steps:
+    - uses: zendesk/checkout@v2
+      with:
+        fetch-depth: 3
+    - name: golangci-lint
+      uses: zendesk/golangci-lint-action@v2
+      with:
+        version: v1.19.1

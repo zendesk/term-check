@@ -44,6 +44,7 @@ jobs:
     - uses: zendesk/checkout@v2
       with:
         fetch-depth: 3
+        path: ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
     - name: golangci-lint
       uses: zendesk/golangci-lint-action@v2
       with:

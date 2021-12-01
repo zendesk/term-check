@@ -38,5 +38,3 @@ jobs:
         fetch-depth: 3
     - name: golangci-lint
       uses: zendesk/golangci-lint-action@v2
-      with:
-        version: v1.19.1

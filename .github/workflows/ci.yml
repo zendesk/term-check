@@ -16,6 +16,7 @@ jobs:
     - uses: zendesk/checkout@v2
       with:
         fetch-depth: 3
+        path: ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
     - uses: zendesk/setup-go@v2
       with:
         go-version: 1.14.15
@@ -23,8 +24,13 @@ jobs:
       with:
         path: ${{ github.workspace }}/gopath
         key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
-    - run: go mod download
-    - run: make
+    - run: |
+        pushd ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
+        go mod download
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+    - run: |
+        pushd ${{ github.workspace }}/gopath/src/github.com/zendesk/term-check
+        make
 
   lint:
     name: Lint

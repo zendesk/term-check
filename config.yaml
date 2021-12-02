@@ -3,7 +3,9 @@ shared:
 botConfig:
   appID: *appID
   termList:
+    - blacklist
     - slave
+    - whitelist
   checkName: Inclusive Language Check
   checkSuccessSummary: Looks good! 😇
   checkFailureSummary: 👋 exclusive language

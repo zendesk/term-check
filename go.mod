@@ -5,7 +5,6 @@ go 1.14
 require (
 	github.com/DataDog/ghinstallation v0.1.2-0.20190205220828-59991dd7261d
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/google/go-github/v18 v18.2.0
 	github.com/google/go-github/v32 v32.1.0
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
@@ -23,5 +22,5 @@ require (
 	github.com/waigani/diffparser v0.0.0-20180518143736-8ef6bf958d9e
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce // indirect
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.8
 )

@@ -285,11 +285,7 @@ func (b *Bot) createAnnotation(f *diffparser.DiffFile, l *diffparser.DiffLine, m
 
 func ignoredByRepo(rc *config.RepoConfig, filename string) bool {
 	if ignorePatterns := rc.Ignore; ignorePatterns != nil {
-		ignoreMatcher, err := ignore.CompileIgnoreLines(ignorePatterns...)
-		if err != nil {
-			log.Warn().Err(err).Msg("Disregarding `ignore` configuration")
-			return false
-		}
+		ignoreMatcher := ignore.CompileIgnoreLines(ignorePatterns...)
 		return ignoreMatcher.MatchesPath(filename)
 	}
 	return false

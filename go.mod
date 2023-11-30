@@ -8,7 +8,7 @@ require (
 	github.com/google/go-github/v18 v18.2.0
 	github.com/google/go-github/v32 v32.1.0
 	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v1.6.2
+	github.com/gorilla/mux v1.8.1
 	github.com/juju/clock v0.0.0-20180808021310-bab88fc67299 // indirect
 	github.com/juju/errors v0.0.0-20181012004132-a4583d0a56ea // indirect
 	github.com/juju/loggo v0.0.0-20180524022052-584905176618 // indirect

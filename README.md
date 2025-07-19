@@ -1,4 +1,4 @@
-# Term Check [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/zendesk/term-check?tab=doc) [![GolangCI](https://golangci.com/badges/github.com/golangci/golangci-lint.svg)](https://golangci.com)
+# Term Check [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://pkg.go.dev/github.com/zendesk/term-check?tab=doc) [![GolangCI](https://img.shields.io/badge/Goland-CI-green.svg)](https://golangci.com)
 
 This bot is for our Inclusive Language initiative inside Zendesk Engineering.
 
